@@ -2,46 +2,57 @@ using UnityEngine;
 
 public class CircleRotator : MonoBehaviour
 {
+    public Collider2D rotationHandle;  // Assign this variable in the inspector. 在检查器中分配这个变量
     private bool isDragging;
-    private Vector3 startMousePos;
-    private Vector3 currentMousePos;
-    private float angleOffset;
+    private float angleOffset;  // The offset for the rotation. 旋转偏移量
 
     void Update()
     {
-        // For testing in the Unity editor
-        if (Input.GetMouseButtonDown(0))
+        // Handle touch input for mobile devices. 处理移动设备的触摸输入
+        if (Input.touchCount > 0)
         {
-            StartRotation(Input.mousePosition);
-        }
-        if (Input.GetMouseButton(0) && isDragging)
-        {
-            ContinueRotation(Input.mousePosition);
-        }
-        if (Input.GetMouseButtonUp(0))
-        {
-            EndRotation();
-        }
+            Touch touch = Input.GetTouch(0);
+            Vector3 touchPosition = Camera.main.ScreenToWorldPoint(touch.position);
+            touchPosition.z = 0;  // Ensure the z-position is zero. 确保z位置为零
 
-
+            switch (touch.phase)
+            {
+                case TouchPhase.Began:
+                    if (rotationHandle.OverlapPoint(touchPosition))
+                    {
+                        StartRotation(touchPosition);
+                    }
+                    break;
+                case TouchPhase.Moved:
+                    if (isDragging)
+                    {
+                        ContinueRotation(touchPosition);
+                    }
+                    break;
+                case TouchPhase.Ended:
+                case TouchPhase.Canceled:
+                    EndRotation();
+                    break;
+            }
+        }
     }
 
     private void StartRotation(Vector3 position)
     {
-        startMousePos = Camera.main.ScreenToWorldPoint(position);
-        startMousePos.z = 0;
-        Vector3 dir = startMousePos - transform.position;
-        angleOffset = (Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg) - transform.eulerAngles.z;
+        // Calculate the offset at the start of the rotation. 计算起始旋转时的偏移量
+        Vector3 dir = position - rotationHandle.transform.position;
+        angleOffset = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - rotationHandle.transform.eulerAngles.z;
         isDragging = true;
     }
 
     private void ContinueRotation(Vector3 position)
     {
-        currentMousePos = Camera.main.ScreenToWorldPoint(position);
-        currentMousePos.z = 0;
-        Vector3 dir = currentMousePos - transform.position;
+        if (!isDragging) return;
+
+        // Calculate the current angle and apply it to the rotation object. 计算当前旋转角度，并应用到旋转对象
+        Vector3 dir = position - rotationHandle.transform.position;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - angleOffset;
-        transform.eulerAngles = new Vector3(0, 0, angle);
+        rotationHandle.transform.eulerAngles = new Vector3(0, 0, angle);
     }
 
     private void EndRotation()
@@ -49,22 +60,3 @@ public class CircleRotator : MonoBehaviour
         isDragging = false;
     }
 }
-        // For touch input (uncomment for building to mobile)
-        /*
-        if (Input.touchCount > 0)
-        {
-            Touch touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Began)
-            {
-                StartRotation(touch.position);
-            }
-            else if (touch.phase == TouchPhase.Moved && isDragging)
-            {
-                ContinueRotation(touch.position);
-            }
-            else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
-            {
-                EndRotation();
-            }
-        }
-        */

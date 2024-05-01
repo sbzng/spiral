@@ -43,7 +43,6 @@ public class MusicSelectionManager : MonoBehaviour
     // 确认选择并开始游戏的方法
     public void ConfirmSelectionAndStartGame()
     {
-        // 不需要再次获取PlayerPrefs中的音乐名称，因为我们已经有了selectedMusicName
         // selectedMusicName = PlayerPrefs.GetString("SelectedMusic", "");
         Debug.Log("Confirming selection: " + selectedMusicName);
         // 检查是否选择了音乐
